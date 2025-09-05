@@ -11,7 +11,7 @@ const skillCategories = [
     icon: <Code className="w-6 h-6 text-primary" />,
     skills: [
       { name: 'React / Next.js', level: 60 },
-      { name: 'TypeScript', level: 55 },
+      { name: 'Flutter', level: 70 },
       { name: 'TailwindCSS', level: 60 },
       { name: 'Framer Motion', level: 50 },
     ],
