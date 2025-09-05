@@ -11,19 +11,19 @@ const protocols = [
     name: 'GitHub',
     description: 'SYN/ACK with project repositories',
     icon: <Github className="w-8 h-8 text-primary" />,
-    url: 'https://github.com',
+    url: 'https://github.com/cazzano',
   },
   {
     name: 'LinkedIn',
     description: 'Establish professional connection',
     icon: <Linkedin className="w-8 h-8 text-primary" />,
-    url: 'https://linkedin.com',
+    url: 'https://linkedin.com/in/vincenzo-cazzano-687a41326',
   },
   {
     name: 'Email',
     description: 'Transmit encrypted message',
     icon: <Mail className="w-8 h-8 text-primary" />,
-    url: 'mailto:user@example.com',
+    url: 'mailto:cuprousoh@gmail.com',
   },
 ];
 

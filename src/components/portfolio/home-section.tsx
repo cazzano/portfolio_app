@@ -7,8 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { User, Terminal } from 'lucide-react';
 
 const profileData = [
-  { label: 'ALIAS', value: 'Digital Shadow' },
-  { label: 'CLASS', value: 'Full-Stack Developer' },
+  { label: 'ALIAS', value: 'Sohaib Asif' },
+  { label: 'CLASS', value: 'Backend Developer' },
   { label: 'STATUS', value: 'ACTIVE' },
   { label: 'LOCATION', value: '██████, ██' },
 ];
