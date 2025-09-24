@@ -1,5 +1,4 @@
 [app]
-
 # Basic app info
 title = My Kivy App
 package.name = mykivyapp
@@ -18,8 +17,12 @@ requirements = python3,kivy
 # Main file
 source.main = main.py
 
-[buildozer]
+# Android specific
+[android]
+# Orientation - set to auto to allow both portrait and landscape
+orientation = all
 
+[buildozer]
 # Build directory
 buildozer_dir = .buildozer
 
