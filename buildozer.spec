@@ -9,10 +9,8 @@ package.domain = com.example
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
 
-# Version
+# Version (use either version OR version.regex, not both)
 version = 1.0
-version.regex = __version__ = ['"](.+)['"]
-version.filename = %(source.dir)s/main.py
 
 # Requirements
 requirements = python3,kivy
