@@ -3,35 +3,59 @@ name: Build Kivy APK from Kivy Branch
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build-android:
     name: Build Android APK
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04  # Use Ubuntu 22.04 instead of 24.04 to avoid libtinfo5 issues
     
     steps:
+    # Checkout the kivy branch where the code is located
     - name: Checkout Kivy Branch
       uses: actions/checkout@v4
       with:
         ref: kivy
     
-    # Fix the user permissions issue
-    - name: Setup User Environment
-      run: |
-        export USER=$(whoami)
-        echo "USER=$USER" >> $GITHUB_ENV
-        sudo chown -R $USER:$USER $GITHUB_WORKSPACE
-    
-    - name: Build APK with Buildozer (ArtemSBulgakov)
-      uses: ArtemSBulgakov/buildozer-action@v1
+    # Setup Python
+    - name: Setup Python
+      uses: actions/setup-python@v4
       with:
-        workdir: .
-        buildozer_version: stable
-        command: android debug
+        python-version: '3.8'
     
+    # Setup Java (required for Android builds)
+    - name: Setup Java JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    
+    # Install system dependencies for buildozer
+    - name: Install System Dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+    
+    # Install buildozer
+    - name: Install Buildozer
+      run: |
+        pip3 install --user --upgrade buildozer
+        pip3 install --user --upgrade Cython==0.29.33
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+    
+    # Build APK
+    - name: Build APK with Buildozer
+      run: |
+        buildozer android debug
+      working-directory: .
+    
+    # Upload the APK as downloadable artifact
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: kivy-app-apk
-        path: "**/*.apk"
+        path: |
+          ./bin/*.apk
+          **/*.apk
