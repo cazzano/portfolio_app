@@ -28,3 +28,6 @@ log_level = 1
 
 # Warn on root
 warn_on_root = 1
+
+# Auto accept Android SDK licenses
+android.accept_sdk_license = True
