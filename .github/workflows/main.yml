@@ -1,0 +1,36 @@
+name: Build Kivy APK from Kivy Branch
+
+# Trigger the workflow when main branch is updated or manually
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    
+    steps:
+    # Checkout the kivy branch where the code is located
+    - name: Checkout Kivy Branch
+      uses: actions/checkout@v4
+      with:
+        ref: kivy
+    
+    # Build APK using buildozer
+    - name: Build APK with Buildozer
+      uses: ArtemSBulgakov/buildozer-action@v1
+      with:
+        workdir: .
+        buildozer_version: stable
+        command: android debug
+    
+    # Upload the APK as downloadable artifact
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: kivy-app-apk
+        path: "**/*.apk"
