@@ -19,12 +19,13 @@ jobs:
       with:
         ref: kivy
     
-    # Method 1: Try with digreatbrian/buildozer-action (alternative that works better)
-    - name: Build APK with Buildozer (Alternative Action)
-      uses: digreatbrian/buildozer-action@v1.0.0
+    # Method 1: Using digreatbrian/buildozer-action@v2 (CORRECT VERSION)
+    - name: Build APK with Buildozer
+      uses: digreatbrian/buildozer-action@v2
       with:
-        workdir: .
-        buildozer-cmd: android debug
+        python-version: 3.8
+        buildozer-cmd: buildozer -v android debug
+        work-dir: .
     
     # Upload the APK as downloadable artifact
     - name: Upload APK
@@ -32,5 +33,5 @@ jobs:
       with:
         name: kivy-app-apk
         path: |
+          ./bin/*.apk
           **/*.apk
-          .buildozer/android/platform/build-**/outputs/apk/debug/*.apk
