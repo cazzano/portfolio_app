@@ -45,10 +45,10 @@ jobs:
         pip3 install --user --upgrade Cython==0.29.33
         echo "$HOME/.local/bin" >> $GITHUB_PATH
     
-    # Build APK
+    # Build APK with auto license acceptance
     - name: Build APK with Buildozer
       run: |
-        buildozer android debug
+        yes | buildozer android debug
       working-directory: .
     
     # Upload the APK as downloadable artifact
