@@ -10,9 +10,35 @@ from kivy.graphics import Color, Rectangle, RoundedRectangle, Line
 from kivy.animation import Animation
 from kivy.metrics import dp
 from kivy.core.window import Window
+from kivy.config import Config
+import platform
 
-# Set window background to a modern dark color
+# FORCE PORTRAIT ORIENTATION - This is the key fix!
+Config.set('graphics', 'orientation', 'portrait')
+
+# Additional window configurations for mobile
+if platform.system() == 'Android':
+    from android.permissions import request_permissions, Permission
+    # Request necessary permissions
+    request_permissions([Permission.WRITE_EXTERNAL_STORAGE, Permission.READ_EXTERNAL_STORAGE])
+
+# Set window size for development (will be ignored on mobile)
+Window.size = (360, 640)  # Portrait aspect ratio
 Window.clearcolor = (0.05, 0.05, 0.08, 1)
+
+# Lock orientation function for Android
+def lock_orientation():
+    try:
+        from jnius import autoclass
+        PythonActivity = autoclass('org.kivy.android.PythonActivity')
+        activity = PythonActivity.mActivity
+        
+        # Force portrait orientation
+        # ActivityInfo.SCREEN_ORIENTATION_PORTRAIT = 1
+        activity.setRequestedOrientation(1)
+    except:
+        # Not on Android or jnius not available
+        pass
 
 class MaterialCard(BoxLayout):
     def __init__(self, elevation=4, radius=12, bg_color=(0.12, 0.12, 0.15, 1), **kwargs):
@@ -90,66 +116,69 @@ class HomeScreen(Screen):
         scroll = ScrollView()
         main_layout = BoxLayout(
             orientation='vertical', 
-            padding=dp(20), 
-            spacing=dp(20),
+            padding=dp(16), 
+            spacing=dp(16),
             size_hint_y=None
         )
         main_layout.bind(minimum_height=main_layout.setter('height'))
         
-        # Hero section
+        # Hero section - Optimized for portrait
         hero_card = MaterialCard(
             size_hint_y=None,
-            height=dp(280),
+            height=dp(320),  # Increased height for portrait
             elevation=8,
             bg_color=(0.15, 0.15, 0.2, 1)
         )
         
-        hero_layout = BoxLayout(orientation='vertical', padding=dp(24), spacing=dp(16))
+        hero_layout = BoxLayout(orientation='vertical', padding=dp(20), spacing=dp(12))
         
-        # Profile section
-        profile_section = BoxLayout(orientation='horizontal', size_hint_y=0.6, spacing=dp(20))
+        # Profile section - Stack vertically for portrait
+        profile_section = BoxLayout(orientation='vertical', size_hint_y=0.7, spacing=dp(16))
         
-        # Avatar
-        avatar_widget = Widget(size_hint_x=0.3)
+        # Avatar centered
+        avatar_container = BoxLayout(orientation='horizontal', size_hint_y=0.4)
+        avatar_widget = Widget(size_hint_x=None, width=dp(120))
         with avatar_widget.canvas:
             Color(0.2, 0.6, 1, 1)
-            avatar_bg = RoundedRectangle(radius=[50] * 4, size=(dp(100), dp(100)), pos=(0, 0))
+            avatar_bg = RoundedRectangle(radius=[60] * 4, size=(dp(120), dp(120)), pos=(0, 0))
             Color(1, 1, 1, 1)
         
         def update_avatar(*args):
-            avatar_bg.pos = (avatar_widget.x + (avatar_widget.width - dp(100))/2, 
-                           avatar_widget.y + (avatar_widget.height - dp(100))/2)
+            avatar_bg.pos = (avatar_widget.x, avatar_widget.y + (avatar_widget.height - dp(120))/2)
         
         avatar_widget.bind(pos=update_avatar, size=update_avatar)
+        avatar_container.add_widget(Widget())  # Spacer
+        avatar_container.add_widget(avatar_widget)
+        avatar_container.add_widget(Widget())  # Spacer
         
-        # Profile text
-        profile_text = BoxLayout(orientation='vertical', size_hint_x=0.7)
+        # Profile text - Centered for portrait
+        profile_text = BoxLayout(orientation='vertical', size_hint_y=0.6)
         
         name_label = Label(
             text='Sarah Johnson',
-            font_size=dp(28),
+            font_size=dp(26),
             bold=True,
             color=(1, 1, 1, 1),
             size_hint_y=0.3,
-            halign='left'
+            halign='center'
         )
         name_label.bind(size=name_label.setter('text_size'))
         
         title_label = Label(
             text='UI/UX Designer & Flutter Developer',
-            font_size=dp(16),
+            font_size=dp(15),
             color=(0.7, 0.8, 1, 1),
-            size_hint_y=0.2,
-            halign='left'
+            size_hint_y=0.3,
+            halign='center'
         )
         title_label.bind(size=title_label.setter('text_size'))
         
         bio_label = Label(
             text='Creating beautiful, functional mobile experiences with 6+ years of expertise in design and development.',
-            font_size=dp(14),
+            font_size=dp(13),
             color=(0.8, 0.8, 0.8, 1),
-            size_hint_y=0.5,
-            halign='left',
+            size_hint_y=0.4,
+            halign='center',
             text_size=(None, None)
         )
         bio_label.bind(size=bio_label.setter('text_size'))
@@ -158,11 +187,11 @@ class HomeScreen(Screen):
         profile_text.add_widget(title_label)
         profile_text.add_widget(bio_label)
         
-        profile_section.add_widget(avatar_widget)
+        profile_section.add_widget(avatar_container)
         profile_section.add_widget(profile_text)
         
-        # Stats section
-        stats_layout = GridLayout(cols=3, size_hint_y=0.4, spacing=dp(16))
+        # Stats section - Better spacing for portrait
+        stats_layout = GridLayout(cols=3, size_hint_y=0.3, spacing=dp(12))
         
         stats_data = [
             ('🚀', '25+', 'Projects'),
@@ -173,19 +202,19 @@ class HomeScreen(Screen):
         for icon, value, label in stats_data:
             stat_card = MaterialCard(
                 bg_color=(0.1, 0.1, 0.15, 1),
-                radius=16
+                radius=12
             )
-            stat_layout = BoxLayout(orientation='vertical', padding=dp(16))
+            stat_layout = BoxLayout(orientation='vertical', padding=dp(8))
             
             icon_label = Label(
                 text=icon,
-                font_size=dp(24),
+                font_size=dp(20),
                 size_hint_y=0.3
             )
             
             value_label = Label(
                 text=value,
-                font_size=dp(20),
+                font_size=dp(16),
                 bold=True,
                 color=(0.2, 0.6, 1, 1),
                 size_hint_y=0.4
@@ -193,7 +222,7 @@ class HomeScreen(Screen):
             
             label_text = Label(
                 text=label,
-                font_size=dp(12),
+                font_size=dp(10),
                 color=(0.7, 0.7, 0.7, 1),
                 size_hint_y=0.3
             )
@@ -208,14 +237,14 @@ class HomeScreen(Screen):
         hero_layout.add_widget(stats_layout)
         hero_card.add_widget(hero_layout)
         
-        # Navigation section
+        # Navigation section - Stack vertically for portrait
         nav_card = MaterialCard(
             size_hint_y=None,
-            height=dp(120),
+            height=dp(180),  # Increased for vertical layout
             bg_color=(0.1, 0.1, 0.13, 1)
         )
         
-        nav_layout = GridLayout(cols=3, padding=dp(20), spacing=dp(16))
+        nav_layout = BoxLayout(orientation='vertical', padding=dp(16), spacing=dp(12))
         
         nav_buttons = [
             ('📱 Projects', (0.2, 0.6, 1, 1), 'projects'),
@@ -228,7 +257,7 @@ class HomeScreen(Screen):
                 text=text,
                 bg_color=color,
                 size_hint_y=None,
-                height=dp(50)
+                height=dp(45)
             )
             btn.bind(on_press=lambda x, s=screen: self.switch_screen(s))
             nav_layout.add_widget(btn)
@@ -238,28 +267,28 @@ class HomeScreen(Screen):
         # Quick about section
         about_card = MaterialCard(
             size_hint_y=None,
-            height=dp(160),
+            height=dp(140),
             bg_color=(0.08, 0.12, 0.08, 1)
         )
         
-        about_layout = BoxLayout(orientation='vertical', padding=dp(20), spacing=dp(12))
+        about_layout = BoxLayout(orientation='vertical', padding=dp(16), spacing=dp(8))
         
         about_title = Label(
             text='✨ About Me',
-            font_size=dp(20),
+            font_size=dp(18),
             bold=True,
             color=(0.2, 0.8, 0.4, 1),
             size_hint_y=0.3,
-            halign='left'
+            halign='center'
         )
         about_title.bind(size=about_title.setter('text_size'))
         
         about_text = Label(
             text='Passionate about creating intuitive user experiences and bringing ideas to life through code. I specialize in Flutter development and modern UI/UX design principles.',
-            font_size=dp(14),
+            font_size=dp(13),
             color=(0.8, 0.8, 0.8, 1),
             size_hint_y=0.7,
-            halign='left',
+            halign='center',
             text_size=(None, None)
         )
         about_text.bind(size=about_text.setter('text_size'))
@@ -284,33 +313,33 @@ class ProjectsScreen(Screen):
         super().__init__(**kwargs)
         self.name = 'projects'
         
-        main_layout = BoxLayout(orientation='vertical', padding=dp(20), spacing=dp(16))
+        main_layout = BoxLayout(orientation='vertical', padding=dp(16), spacing=dp(12))
         
         # App Bar
         app_bar = MaterialCard(
             size_hint_y=None,
-            height=dp(70),
+            height=dp(60),
             bg_color=(0.15, 0.15, 0.2, 1),
             elevation=6
         )
         
-        app_bar_layout = BoxLayout(orientation='horizontal', padding=dp(16), spacing=dp(16))
+        app_bar_layout = BoxLayout(orientation='horizontal', padding=dp(12), spacing=dp(12))
         
         back_btn = MaterialButton(
             text='← Back',
-            size_hint_x=0.25,
+            size_hint_x=0.3,
             bg_color=(0.3, 0.3, 0.3, 1),
             size_hint_y=None,
-            height=dp(40)
+            height=dp(36)
         )
         back_btn.bind(on_press=lambda x: self.go_back())
         
         title_label = Label(
             text='My Projects',
-            font_size=dp(22),
+            font_size=dp(20),
             bold=True,
             color=(1, 1, 1, 1),
-            size_hint_x=0.75,
+            size_hint_x=0.7,
             halign='left'
         )
         title_label.bind(size=title_label.setter('text_size'))
@@ -321,7 +350,7 @@ class ProjectsScreen(Screen):
         
         # Projects scroll
         scroll = ScrollView()
-        projects_layout = BoxLayout(orientation='vertical', spacing=dp(16), size_hint_y=None)
+        projects_layout = BoxLayout(orientation='vertical', spacing=dp(12), size_hint_y=None)
         projects_layout.bind(minimum_height=projects_layout.setter('height'))
         
         projects_data = [
@@ -365,47 +394,51 @@ class ProjectsScreen(Screen):
         for project in projects_data:
             project_card = MaterialCard(
                 size_hint_y=None,
-                height=dp(160),
+                height=dp(150),
                 bg_color=(0.1, 0.1, 0.13, 1),
                 elevation=4
             )
             
-            card_layout = BoxLayout(orientation='vertical', padding=dp(20), spacing=dp(8))
+            card_layout = BoxLayout(orientation='vertical', padding=dp(16), spacing=dp(6))
             
             # Header with name and status
-            header_layout = BoxLayout(orientation='horizontal', size_hint_y=0.25)
+            header_layout = BoxLayout(orientation='vertical', size_hint_y=0.4, spacing=dp(4))
             
             name_label = Label(
                 text=project['name'],
-                font_size=dp(16),
+                font_size=dp(15),
                 bold=True,
                 color=(1, 1, 1, 1),
-                size_hint_x=0.7,
                 halign='left'
             )
             name_label.bind(size=name_label.setter('text_size'))
             
+            status_container = BoxLayout(orientation='horizontal', size_hint_y=0.5)
             status_card = MaterialCard(
-                size_hint_x=0.3,
+                size_hint_x=None,
+                width=dp(80),
                 bg_color=(*project['color'][:3], 0.3),
-                radius=20
+                radius=15
             )
             
             status_label = Label(
                 text=project['status'],
-                font_size=dp(12),
+                font_size=dp(11),
                 bold=True,
                 color=project['color']
             )
             
             status_card.add_widget(status_label)
+            status_container.add_widget(status_card)
+            status_container.add_widget(Widget())  # Spacer
+            
             header_layout.add_widget(name_label)
-            header_layout.add_widget(status_card)
+            header_layout.add_widget(status_container)
             
             # Tech stack
             tech_label = Label(
                 text=project['tech'],
-                font_size=dp(13),
+                font_size=dp(12),
                 color=(0.7, 0.8, 1, 1),
                 size_hint_y=0.2,
                 halign='left'
@@ -415,9 +448,9 @@ class ProjectsScreen(Screen):
             # Description
             desc_label = Label(
                 text=project['desc'],
-                font_size=dp(14),
+                font_size=dp(13),
                 color=(0.8, 0.8, 0.8, 1),
-                size_hint_y=0.55,
+                size_hint_y=0.4,
                 halign='left',
                 text_size=(None, None)
             )
@@ -446,33 +479,33 @@ class SkillsScreen(Screen):
         super().__init__(**kwargs)
         self.name = 'skills'
         
-        main_layout = BoxLayout(orientation='vertical', padding=dp(20), spacing=dp(16))
+        main_layout = BoxLayout(orientation='vertical', padding=dp(16), spacing=dp(12))
         
         # App Bar
         app_bar = MaterialCard(
             size_hint_y=None,
-            height=dp(70),
+            height=dp(60),
             bg_color=(0.15, 0.15, 0.2, 1),
             elevation=6
         )
         
-        app_bar_layout = BoxLayout(orientation='horizontal', padding=dp(16), spacing=dp(16))
+        app_bar_layout = BoxLayout(orientation='horizontal', padding=dp(12), spacing=dp(12))
         
         back_btn = MaterialButton(
             text='← Back',
-            size_hint_x=0.25,
+            size_hint_x=0.3,
             bg_color=(0.3, 0.3, 0.3, 1),
             size_hint_y=None,
-            height=dp(40)
+            height=dp(36)
         )
         back_btn.bind(on_press=lambda x: self.go_back())
         
         title_label = Label(
             text='Skills & Expertise',
-            font_size=dp(22),
+            font_size=dp(20),
             bold=True,
             color=(1, 1, 1, 1),
-            size_hint_x=0.75,
+            size_hint_x=0.7,
             halign='left'
         )
         title_label.bind(size=title_label.setter('text_size'))
@@ -483,7 +516,7 @@ class SkillsScreen(Screen):
         
         # Skills scroll
         scroll = ScrollView()
-        skills_layout = BoxLayout(orientation='vertical', spacing=dp(16), size_hint_y=None)
+        skills_layout = BoxLayout(orientation='vertical', spacing=dp(12), size_hint_y=None)
         skills_layout.bind(minimum_height=skills_layout.setter('height'))
         
         skills_categories = {
@@ -517,25 +550,25 @@ class SkillsScreen(Screen):
         for category, data in skills_categories.items():
             category_card = MaterialCard(
                 size_hint_y=None,
-                height=dp(140),
+                height=dp(120),
                 bg_color=(0.08, 0.08, 0.12, 1),
                 elevation=4
             )
             
-            card_layout = BoxLayout(orientation='vertical', padding=dp(20), spacing=dp(12))
+            card_layout = BoxLayout(orientation='vertical', padding=dp(16), spacing=dp(8))
             
             # Header
-            header_layout = BoxLayout(orientation='horizontal', size_hint_y=0.3, spacing=dp(12))
+            header_layout = BoxLayout(orientation='horizontal', size_hint_y=0.35, spacing=dp(8))
             
             icon_label = Label(
                 text=data['icon'],
-                font_size=dp(24),
+                font_size=dp(20),
                 size_hint_x=0.15
             )
             
             title_label = Label(
                 text=category,
-                font_size=dp(18),
+                font_size=dp(16),
                 bold=True,
                 color=data['color'],
                 size_hint_x=0.85,
@@ -546,32 +579,40 @@ class SkillsScreen(Screen):
             header_layout.add_widget(icon_label)
             header_layout.add_widget(title_label)
             
-            # Skills chips
-            skills_scroll = ScrollView(size_hint_y=0.7)
-            chips_layout = BoxLayout(orientation='horizontal', spacing=dp(8), size_hint_y=None, height=dp(40))
+            # Skills chips - Wrap layout for portrait
+            chips_container = BoxLayout(orientation='vertical', size_hint_y=0.65, spacing=dp(4))
             
-            for skill in data['skills']:
-                chip_card = MaterialCard(
-                    size_hint_x=None,
-                    width=len(skill) * dp(12) + dp(20),
-                    bg_color=(*data['color'][:3], 0.2),
-                    radius=20
-                )
+            # Create rows of skills
+            skills_per_row = 2
+            for i in range(0, len(data['skills']), skills_per_row):
+                row_layout = BoxLayout(orientation='horizontal', spacing=dp(6), size_hint_y=None, height=dp(30))
                 
-                chip_label = Label(
-                    text=skill,
-                    font_size=dp(12),
-                    color=data['color'],
-                    bold=True
-                )
+                for j in range(skills_per_row):
+                    if i + j < len(data['skills']):
+                        skill = data['skills'][i + j]
+                        chip_card = MaterialCard(
+                            size_hint_x=None,
+                            width=len(skill) * dp(10) + dp(16),
+                            bg_color=(*data['color'][:3], 0.2),
+                            radius=15
+                        )
+                        
+                        chip_label = Label(
+                            text=skill,
+                            font_size=dp(11),
+                            color=data['color'],
+                            bold=True
+                        )
+                        
+                        chip_card.add_widget(chip_label)
+                        row_layout.add_widget(chip_card)
+                    else:
+                        row_layout.add_widget(Widget())  # Empty space
                 
-                chip_card.add_widget(chip_label)
-                chips_layout.add_widget(chip_card)
-            
-            skills_scroll.add_widget(chips_layout)
+                chips_container.add_widget(row_layout)
             
             card_layout.add_widget(header_layout)
-            card_layout.add_widget(skills_scroll)
+            card_layout.add_widget(chips_container)
             
             category_card.add_widget(card_layout)
             skills_layout.add_widget(category_card)
@@ -592,33 +633,33 @@ class ContactScreen(Screen):
         super().__init__(**kwargs)
         self.name = 'contact'
         
-        main_layout = BoxLayout(orientation='vertical', padding=dp(20), spacing=dp(16))
+        main_layout = BoxLayout(orientation='vertical', padding=dp(16), spacing=dp(12))
         
         # App Bar
         app_bar = MaterialCard(
             size_hint_y=None,
-            height=dp(70),
+            height=dp(60),
             bg_color=(0.15, 0.15, 0.2, 1),
             elevation=6
         )
         
-        app_bar_layout = BoxLayout(orientation='horizontal', padding=dp(16), spacing=dp(16))
+        app_bar_layout = BoxLayout(orientation='horizontal', padding=dp(12), spacing=dp(12))
         
         back_btn = MaterialButton(
             text='← Back',
-            size_hint_x=0.25,
+            size_hint_x=0.3,
             bg_color=(0.3, 0.3, 0.3, 1),
             size_hint_y=None,
-            height=dp(40)
+            height=dp(36)
         )
         back_btn.bind(on_press=lambda x: self.go_back())
         
         title_label = Label(
             text="Let's Connect!",
-            font_size=dp(22),
+            font_size=dp(20),
             bold=True,
             color=(1, 1, 1, 1),
-            size_hint_x=0.75,
+            size_hint_x=0.7,
             halign='left'
         )
         title_label.bind(size=title_label.setter('text_size'))
@@ -629,21 +670,21 @@ class ContactScreen(Screen):
         
         # Contact content
         scroll = ScrollView()
-        contact_layout = BoxLayout(orientation='vertical', spacing=dp(20), size_hint_y=None)
+        contact_layout = BoxLayout(orientation='vertical', spacing=dp(16), size_hint_y=None)
         contact_layout.bind(minimum_height=contact_layout.setter('height'))
         
         # Hero message
         hero_card = MaterialCard(
             size_hint_y=None,
-            height=dp(120),
+            height=dp(100),
             bg_color=(0.1, 0.15, 0.2, 1)
         )
         
-        hero_layout = BoxLayout(orientation='vertical', padding=dp(20), spacing=dp(8))
+        hero_layout = BoxLayout(orientation='vertical', padding=dp(16), spacing=dp(6))
         
         hero_title = Label(
             text='Ready to collaborate?',
-            font_size=dp(20),
+            font_size=dp(18),
             bold=True,
             color=(0.2, 0.6, 1, 1),
             size_hint_y=0.4,
@@ -653,7 +694,7 @@ class ContactScreen(Screen):
         
         hero_subtitle = Label(
             text="I'm always excited to work on new projects and bring creative ideas to life!",
-            font_size=dp(14),
+            font_size=dp(13),
             color=(0.8, 0.8, 0.8, 1),
             size_hint_y=0.6,
             halign='center',
@@ -670,7 +711,7 @@ class ContactScreen(Screen):
             ('📧', 'Email', 'sarah.johnson@email.com', (0.2, 0.6, 1, 1)),
             ('📱', 'Phone', '+1 (555) 123-4567', (0.2, 0.8, 0.4, 1)),
             ('💼', 'LinkedIn', 'linkedin.com/in/sarahjohnson', (0.0, 0.5, 1, 1)),
-            ('🐙', 'GitHub', 'github.com/sarahjohnson', (0.3, 0.3, 0.3, 1)),
+            ('🙀', 'GitHub', 'github.com/sarahjohnson', (0.3, 0.3, 0.3, 1)),
             ('🌐', 'Website', 'www.sarahjohnson.dev', (0.8, 0.4, 0.2, 1)),
             ('📍', 'Location', 'San Francisco, CA', (0.6, 0.2, 0.8, 1))
         ]
@@ -678,39 +719,39 @@ class ContactScreen(Screen):
         for icon, label, value, color in contact_methods:
             contact_card = MaterialCard(
                 size_hint_y=None,
-                height=dp(80),
+                height=dp(70),
                 bg_color=(0.08, 0.08, 0.12, 1)
             )
             
-            contact_item_layout = BoxLayout(orientation='horizontal', padding=dp(16), spacing=dp(16))
+            contact_item_layout = BoxLayout(orientation='horizontal', padding=dp(12), spacing=dp(12))
             
             # Icon circle
-            icon_widget = Widget(size_hint_x=0.15)
+            icon_widget = Widget(size_hint_x=0.2)
             with icon_widget.canvas:
                 Color(*color)
-                icon_bg = RoundedRectangle(radius=[25] * 4, size=(dp(50), dp(50)), pos=(0, 0))
+                icon_bg = RoundedRectangle(radius=[20] * 4, size=(dp(40), dp(40)), pos=(0, 0))
                 Color(1, 1, 1, 1)
             
             def update_icon_bg(widget, bg_rect, *args):
-                bg_rect.pos = (widget.x + (widget.width - dp(50))/2, 
-                              widget.y + (widget.height - dp(50))/2)
+                bg_rect.pos = (widget.x + (widget.width - dp(40))/2, 
+                              widget.y + (widget.height - dp(40))/2)
             
             icon_widget.bind(pos=lambda w, *a, bg=icon_bg: update_icon_bg(w, bg, *a), 
                            size=lambda w, *a, bg=icon_bg: update_icon_bg(w, bg, *a))
             
             icon_label = Label(
                 text=icon,
-                font_size=dp(20),
+                font_size=dp(16),
                 pos_hint={'center_x': 0.5, 'center_y': 0.5}
             )
             icon_widget.add_widget(icon_label)
             
             # Contact info
-            info_layout = BoxLayout(orientation='vertical', size_hint_x=0.85)
+            info_layout = BoxLayout(orientation='vertical', size_hint_x=0.8)
             
             label_text = Label(
                 text=label,
-                font_size=dp(14),
+                font_size=dp(12),
                 bold=True,
                 color=color,
                 size_hint_y=0.4,
@@ -720,7 +761,7 @@ class ContactScreen(Screen):
             
             value_text = Label(
                 text=value,
-                font_size=dp(16),
+                font_size=dp(14),
                 color=(1, 1, 1, 1),
                 size_hint_y=0.6,
                 halign='left'
@@ -739,15 +780,15 @@ class ContactScreen(Screen):
         # CTA section
         cta_card = MaterialCard(
             size_hint_y=None,
-            height=dp(100),
+            height=dp(90),
             bg_color=(0.05, 0.12, 0.05, 1)
         )
         
-        cta_layout = BoxLayout(orientation='vertical', padding=dp(20), spacing=dp(12))
+        cta_layout = BoxLayout(orientation='vertical', padding=dp(16), spacing=dp(8))
         
         cta_text = Label(
             text="Have a project in mind? Let's make it happen!",
-            font_size=dp(16),
+            font_size=dp(15),
             bold=True,
             color=(0.2, 0.8, 0.4, 1),
             size_hint_y=0.6,
@@ -757,7 +798,7 @@ class ContactScreen(Screen):
         
         cta_subtitle = Label(
             text="Available for freelance projects and full-time opportunities",
-            font_size=dp(12),
+            font_size=dp(11),
             color=(0.6, 0.8, 0.6, 1),
             size_hint_y=0.4,
             halign='center'
@@ -786,6 +827,9 @@ class PortfolioApp(App):
     def build(self):
         self.title = 'Sarah Johnson - Portfolio'
         
+        # Lock orientation on app start
+        lock_orientation()
+        
         # Create screen manager with smooth transitions
         sm = ScreenManager(transition=SlideTransition())
         
@@ -796,6 +840,10 @@ class PortfolioApp(App):
         sm.add_widget(ContactScreen())
         
         return sm
+    
+    def on_start(self):
+        # Additional orientation lock when app starts
+        lock_orientation()
 
 if __name__ == '__main__':
     PortfolioApp().run()
