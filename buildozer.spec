@@ -12,7 +12,7 @@ source.include_exts = py,png,jpg,kv,atlas
 version = 1.0
 
 # Requirements - added clock for responsive features
-requirements = python3,kivy
+requirements = python3,kivy,pyjnius
 
 # Main file
 source.main = main.py
@@ -30,7 +30,7 @@ android.permissions = INTERNET, WRITE_EXTERNAL_STORAGE, ACCESS_NETWORK_STATE
 [android]
 # FIXED: Changed from 'all' to 'portrait' for portrait-only mode
 # Options: portrait, landscape, sensorPortrait, sensorLandscape, all
-orientation = portrait
+orientation = sensorPortrait
 
 # FIXED: Updated API levels - min 21 helps with orientation issues
 api = 31
@@ -68,3 +68,9 @@ android.accept_sdk_license = True
 
 # Build optimization
 android.release_artifact = apk
+
+
+# Another fixation
+
+android.manifest.intent_filters = android.intent.action.MAIN:android.intent.category.LAUNCHER
+android.manifest_placeholders = screenOrientation:portrait
