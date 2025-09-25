@@ -28,10 +28,11 @@ android.permissions = INTERNET, WRITE_EXTERNAL_STORAGE, ACCESS_NETWORK_STATE
 
 # Android specific
 [android]
-# Orientation - perfect for auto-rotation
-orientation = all
+# FIXED: Changed from 'all' to 'portrait' for portrait-only mode
+# Options: portrait, landscape, sensorPortrait, sensorLandscape, all
+orientation = portrait
 
-# API levels for better compatibility
+# FIXED: Updated API levels - min 21 helps with orientation issues
 api = 31
 minapi = 21
 ndk = 25b
@@ -41,6 +42,10 @@ archs = arm64-v8a, armeabi-v7a
 
 # Enable hardware acceleration for smooth animations
 android.gradle_dependencies = 
+
+# FIXED: Added manifest entries to force portrait orientation
+android.add_activites = com.sarahjohnson.portfolioapp.PythonActivity
+android.manifest.activity_attrs = android:screenOrientation="portrait"
 
 # App theme (optional)
 android.theme = "@android:style/Theme.NoTitleBar"
